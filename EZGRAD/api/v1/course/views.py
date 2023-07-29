@@ -3,9 +3,9 @@ from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse
 from django.http import HttpResponse
 from rest_framework.response import Response
-from course.models import University,Facts,Approval,Course
+from course.models import University,Facts,Approval,Course,Country
 from services.models import CourseType
-from api.v1.course.serializers import UniversitySerializer,FactSerializer,ApprovalSerializer,CourseSerializer
+from api.v1.course.serializers import UniversitySerializer,FactSerializer,ApprovalSerializer,CourseSerializer,CountrySerializer
 from rest_framework.decorators import api_view
 from general.functions import generate_serializer_errors
 
@@ -18,19 +18,23 @@ def add_university(request):
         about=request.data['about_university']
         certificate=request.data['sample_certificate']
         prospectus=request.data['prospectus']
-        country=request.data['country']
         coursetype=request.data['coursetype']
+        country=request.data.get('country')
         if (coursetypes:=CourseType.objects.filter(id=coursetype)).exists():
             coursetypes=CourseType.objects.get(id=coursetype)
         else:
-            services=None
+            coursetype=None
         university=University.objects.create(coursetype=coursetypes,
                                              university_logo=logo,
                                              university_name=name,
                                              about_university=about,
                                              sample_certificate=certificate,
                                              prospectus=prospectus,
-                                             country=country)
+                                             )
+        country_obj=country
+        for i in country_obj:
+            countries=Country.objects.get(id=i)
+        university_obj=university.country.add(countries)
         response_data={
             "StatusCode":6000,
             "data":{
@@ -625,39 +629,30 @@ def list_courses(request):
             }
     return Response({'app_data':response_data})
 
-
-@api_view(['GET'])
-def list_countries(request):
-    course=request.data.get('course')
-    if (c:=Course.objects.filter(id=course,is_deleted=False)).exists():
-        c=c.latest('id')
-        if (u:=University.objects.filter(pk=c.university,is_deleted=False)).exists():
-            u=u.latest('id')
-            serialized_data=CourseSerializer(u,
-                                         context={
-                                             "request":request,
-                                         },).data
-            response_data={
-                "StatusCode":6000,
-                "data":serialized_data
+@api_view(['POST'])
+def add_country(request):
+    serialized_data=CountrySerializer(data=request.data)
+    if serialized_data.is_valid():
+        country=request.data['country']
+        flag=request.data['flag']
+        c=Country.objects.create(country=country,flag=flag)
+        response_data={
+            "StatusCode":6000,
+            "data":{
+                "title":"Success",
+                "Message":"Added Successfully",
             }
-        else:
-            response_data={
-                "StatusCode":6001,
-                "data":{
-                    "title":"Failed",
-                    "Message":"Not Found"
-                }
-            }
+        }
     else:
         response_data={
             "StatusCode":6001,
             "data":{
                 "title":"Failed",
-                "Message":"Not Found"
+                "Message":generate_serializer_errors(serialized_data._errors)
             }
         }
     return Response({'app_data':response_data})
+
 
    
             

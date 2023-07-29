@@ -26,8 +26,11 @@ urlpatterns=[
     path('edit-course/<pk>',views.edit_course),
     path('delete-course/<pk>',views.delete_course),
 
+    path('add-country/',views.add_country),
+   
     path('list-courses/',views.list_courses),
-    path('list-countries/',views.list_countries),
+    
+ 
 
 
 

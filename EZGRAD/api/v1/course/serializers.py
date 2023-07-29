@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from course.models import University,Facts,Approval,Course
+from course.models import University,Facts,Approval,Course,Country
 
 class UniversitySerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,7 +12,7 @@ class UniversitySerializer(serializers.ModelSerializer):
             'about_university',
             'sample_certificate',
             'prospectus',
-            'country',
+           
 
         )
 
@@ -32,7 +32,7 @@ class ApprovalSerializer(serializers.ModelSerializer):
         )
 
 class CourseSerializer(serializers.ModelSerializer):
-    country = serializers.SerializerMethodField()
+    university = serializers.SerializerMethodField()
     class Meta:
         model=Course
         fields=(
@@ -50,11 +50,35 @@ class CourseSerializer(serializers.ModelSerializer):
             'fees',
             'fees_description',
             'syllabus',
-            'country',
+            'university',
             
         )
-    def get_country(self, instance):
+    # def get_country(self, instance):
+    #     if instance.university:
+    #         return instance.university.country
+    #     else:
+    #         return None
+    def get_university(self,instance):
+        request = self.context["request"]
         if instance.university:
-            return instance.university.country
+            selected_categories = instance.university.country.all()
+
+            serialized_data = CountrySerializer(
+                selected_categories,
+                context = {
+                    "request" : request
+                },
+                many=True
+            ).data
+
+            return serialized_data
         else:
             return None
+
+class CountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Country
+        fields=(
+            'country',
+            'flag',
+        )
