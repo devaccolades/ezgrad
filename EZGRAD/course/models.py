@@ -3,12 +3,12 @@ from general.models import BaseModel
 
 class University(BaseModel):
     coursetype=models.ForeignKey('services.CourseType',on_delete=models.CASCADE,blank=True,null=True)
+    country=models.ManyToManyField('Country')
     university_logo=models.ImageField(upload_to='Images',blank=True,null=True)
     university_name=models.CharField(max_length=300,blank=True,null=True)
     about_university=models.TextField(blank=True,null=True)
     sample_certificate=models.ImageField(upload_to='Images',blank=True,null=True)
     prospectus=models.FileField(upload_to='Files',blank=True,null=True)
-    country=models.CharField(max_length=200,blank=True,null=True)
     class Meta:
         db_table='University'
 
@@ -20,6 +20,7 @@ class Facts(models.Model):
     class Meta:
         db_table='Facts'
     
+
 
 class Approval(models.Model):
     university=models.ForeignKey('course.University',on_delete=models.CASCADE,blank=True,null=True)
@@ -46,9 +47,18 @@ class Course(BaseModel):
     fees=models.CharField(max_length=300,blank=True,null=True)
     fees_description=models.TextField(blank=True,null=True)
     syllabus=models.FileField(upload_to='Files',blank=True,null=True)
+
     class Meta:
         db_table='Course'
-        
+
+class Country(models.Model):
+    country=models.CharField(max_length=200,blank=True,null=True)
+    flag=models.ImageField(upload_to='Images',blank=True,null=True)
+    class Meta:
+        db_table='Country'
+
+
+
 
 
 
