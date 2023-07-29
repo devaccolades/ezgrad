@@ -35,14 +35,34 @@ def add_service(request):
 
 @api_view(['GET'])
 def view_service(request):
-    service=ServiceType.objects.all()
-    s=ServiceSerializer(service,many=True)
-    return Response({"Message":"True","response":s.data})
+    if (service:=ServiceType.objects.filter(is_deleted=False)).exists():
+        serialized_data=ServiceSerializer(service,
+                                          context={
+                                              "request":request,
+                                          },
+                                          many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":{
+                "title":"Success",
+                "data":serialized_data
+            }
+        }
+    else:
+        response_data={
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+    
+
 
 @api_view(['PUT'])
 def edit_service(request,pk):
     service=request.data.get('service')
-    if(services:=ServiceType.objects.filter(pk=pk)).exists():
+    if(services:=ServiceType.objects.filter(pk=pk,is_deleted=False)).exists():
         s=services.latest('id')
         if service:
             s.service=service
@@ -67,9 +87,10 @@ def edit_service(request,pk):
 
 @api_view(['DELETE'])
 def delete_service(request,pk):
-    if(service:=ServiceType.objects.filter(pk=pk)).exists():
+    if(service:=ServiceType.objects.filter(pk=pk,is_deleted=False)).exists():
         s=service.latest('id')
-        s.delete()
+        s.is_deleted=True
+        s.save()
         response_data={
             "StatusCode":6000,
             "data":{
@@ -93,7 +114,7 @@ def add_coursetype(request):
     serialized_data=CourseTypeSerializer(data=request.data)
     if serialized_data.is_valid():
         pk=request.data['service']
-        if(service:=ServiceType.objects.filter(id=pk)).exists():
+        if(service:=ServiceType.objects.filter(id=pk,is_deleted=False)).exists():
             service_data=ServiceType.objects.get(pk=pk)
             course_type=request.data['course_type']
             c=CourseType.objects.create(course_type=course_type,service=service_data)
@@ -102,6 +123,14 @@ def add_coursetype(request):
             "data":{
                 "title":"Success",
                 "Message":"Added Successfully"
+                }
+            }
+        else:
+            response_data={
+                "StatusCode":6001,
+                "data":{
+                    "data":"Failed",
+                    "Message":"Not Found"
                 }
             }
     else:
@@ -116,15 +145,34 @@ def add_coursetype(request):
 
 @api_view(['GET'])
 def view_coursetype(request):
-    coursetype=CourseType.objects.all()
-    course=CourseTypeSerializer(coursetype,many=True)
-    return Response({"Message":"True","response":course.data})
+    if (coursetype:=CourseType.objects.filter(is_deleted=False)).exists():
+        serialized_data=CourseTypeSerializer(coursetype,
+                                             context={
+                                                 "request":request,
+                                             },
+                                             many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":{
+                "title":"Success",
+                "data":serialized_data
+            }
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
 
 
 @api_view(['PUT'])
 def edit_coursetype(request,id):
     coursetype=request.data.get('course_type')
-    if(coursetypes:=CourseType.objects.filter(id=id)).exists():
+    if(coursetypes:=CourseType.objects.filter(id=id,is_deleted=False)).exists():
         c=coursetypes.latest('id')
         if coursetype:
             c.course_type=coursetype
@@ -148,9 +196,10 @@ def edit_coursetype(request,id):
 
 @api_view(['DELETE'])
 def delete_coursetype(request,id):
-    if(coursetypes:=CourseType.objects.filter(id=id)).exists():
+    if(coursetypes:=CourseType.objects.filter(id=id,is_deleted=False)).exists():
         c=coursetypes.latest('id')
-        c.delete()
+        c.is_deleted=True
+        c.save()
         response_data={
             "StatusCode":6000,
             "data":{

@@ -12,6 +12,10 @@ urlpatterns=[
     path('edit-options/<pk>',views.edit_options),
     path('delete-options/<pk>',views.delete_options),
 
+    path('add-answer/',views.add_answer),
+    path('view-answer/',views.view_answer),
+    path('delete-answer/<int:id>',views.delete_answer),
+
     
 
 ]

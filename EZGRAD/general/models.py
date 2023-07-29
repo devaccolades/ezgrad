@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 class BaseModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    is_deleted=models.BooleanField(default=False)
  
     class Meta:
         abstract = True

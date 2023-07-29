@@ -38,9 +38,25 @@ def add_homedetails(request):
 
 @api_view(['GET'])
 def view_homedetails(request):
-    details=HomeDetails.objects.all()
-    b=HomeDetailsSerializer(details,many=True)
-    return Response({"Message":"True","response":b.data})
+    if (homedetails:=HomeDetails.objects.filter(is_deleted=False)).exists():
+        serialized_data=HomeDetailsSerializer(homedetails,
+                                              context={
+                                                  "request":request,
+                                              },
+                                              many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
 
 @api_view(['PUT'])
 def edit_homedetails(request,id):
@@ -49,19 +65,19 @@ def edit_homedetails(request,id):
     subbanner=request.data.get('sub_banner')
     subbanner_url=request.data.get('subbanner_url')
     project_logo=request.data.get('project_logo')
-    if (b:=HomeDetails.objects.filter(id=id)).exists():
-        B=b.latest('id')
+    if (home:=HomeDetails.objects.filter(id=id,is_deleted=False)).exists():
+        homedata=home.latest('id')
         if banner:
-            B.main_banner=banner
+            homedata.main_banner=banner
         if banner_url:
-            B.main_banner_url=banner_url
+            homedata.main_banner_url=banner_url
         if subbanner:
-            B.sub_banner=subbanner
+            homedata.sub_banner=subbanner
         if subbanner_url:
-            B.sub_banner_url=subbanner_url
+            homedata.sub_banner_url=subbanner_url
         if project_logo:
-            B.project_logo=project_logo
-        B.save()
+            homedata.project_logo=project_logo
+        homedata.save()
         response_data={
             "StatusCode" : 6000,
             "data":{
@@ -81,9 +97,10 @@ def edit_homedetails(request,id):
 
 @api_view(['DELETE'])
 def delete_homedetails(request,id):
-    if (b:=HomeDetails.objects.filter(id=id)).exists():
-        B=b.latest('id')
-        B.delete()
+    if (home:=HomeDetails.objects.filter(id=id,is_deleted=False)).exists():
+        homedetails=home.latest('id')
+        homedetails.is_deleted=True
+        homedetails.save()
         response_data={
             "StatusCode" : 6000,
             "data":{
@@ -148,9 +165,25 @@ def add_contact(request):
 
 @api_view(['GET'])
 def view_contact(request):
-    contact=Contact.objects.all()
-    c=ContactSerializer(contact,many=True)
-    return Response({'Message':True,"response":c.data})
+    if (contact:=Contact.objects.filter(is_deleted=False)).exists():
+        serialized_data=ContactSerializer(contact,
+                                          context={
+                                              "request":request,
+                                          },
+                                          many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
 
 @api_view(['PUT'])
 def edit_contact(request,id):
@@ -164,7 +197,7 @@ def edit_contact(request,id):
     youtube_url=request.data.get('youtube_url')
     whatsapp_url=request.data.get('whatsapp_url')
     linkedln_url=request.data.get('whatsapp_url')
-    if (c:=Contact.objects.filter(id=id)).exists():
+    if (c:=Contact.objects.filter(id=id,is_deleted=False)).exists():
         contact=c.latest('id')
         if logo:
             contact.logo=logo
@@ -207,9 +240,10 @@ def edit_contact(request,id):
 
 @api_view(['DELETE'])
 def delete_contact(request,id):
-    if (c:=Contact.objects.filter(id=id)).exists():
+    if (c:=Contact.objects.filter(id=id,is_deleted=False)).exists():
         contact=c.latest('id')
-        contact.delete()
+        contact.is_deleted=True
+        contact.save()
         response_data={
             "StatusCode" : 6000,
             "data":{
@@ -261,9 +295,25 @@ def add_details(request):
 
 @api_view(['GET'])
 def view_details(request):
-    details=Details.objects.all()
-    d=DetailSerializer(details,many=True)
-    return Response({"Message":True,"response":d.data})
+    if (details:=Details.objects.filter(is_deleted=False)).exists():
+        serialized_data=DetailSerializer(details,
+                                         context={
+                                             "request":request,
+                                         },
+                                         many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
 
 @api_view(['PUT'])
 def edit_details(request,id):
@@ -272,7 +322,7 @@ def edit_details(request,id):
     title=request.data.get('title')
     content=request.data.get('content')
     image=request.data.get('image')
-    if (details:=Details.objects.filter(id=id)).exists():
+    if (details:=Details.objects.filter(id=id,is_deleted=False)).exists():
         D=details.latest('id')
         if heading:
             D.heading=heading
@@ -305,9 +355,10 @@ def edit_details(request,id):
     
 @api_view(['DELETE'])
 def delete_details(request,id):
-    if (details:=Details.objects.filter(id=id)).exists():
-        d=details.latest('id')
-        d.delete()
+    if (d:=Details.objects.filter(id=id,is_deleted=False)).exists():
+        details=d.latest('id')
+        details.is_deleted=True
+        details.save()
         response_data={
              "StatusCode" : 6000,
             "data":{
@@ -370,9 +421,25 @@ def add_experts(request):
 
 @api_view(['GET'])
 def view_experts(request):
-    expert=Experts.objects.all()
-    exp=ExpertSerializer(expert,many=True)
-    return Response({"Message":"True","response":exp.data})
+    if (expert:=Experts.objects.filter(is_deleted=False)).exists():
+        serialized_data=ExpertSerializer(expert,
+                                         context={
+                                             "request":request,
+                                         },
+                                         many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
 
 @api_view(['PUT'])
 def edit_experts(request,id):
@@ -384,7 +451,7 @@ def edit_experts(request,id):
     photo=request.data.get('photo')
     rating=request.data.get('rating')
     counselling=request.data.get('counselling')
-    if (exp:=Experts.objects.filter(id=id)).exists():
+    if (exp:=Experts.objects.filter(id=id,is_deleted=False)).exists():
         expert=exp.latest('id')
         if title:
             expert.title=title
@@ -424,9 +491,10 @@ def edit_experts(request,id):
 
 @api_view(['DELETE'])
 def delete_experts(request,id):
-    if (exp:=Experts.objects.filter(id=id)).exists():
+    if (exp:=Experts.objects.filter(id=id,is_deleted=False)).exists():
         expert=exp.latest('id')
-        expert.delete()
+        expert.is_deleted=True
+        expert.save()
         response_data={
             "StatusCode" : 6000,
             "data":{

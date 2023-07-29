@@ -6,6 +6,7 @@ class HomeDetails(models.Model):
     sub_banner=models.ImageField(upload_to='Images',blank=True,null=True)
     sub_banner_url=models.URLField(blank=True,null=True)
     project_logo=models.ImageField(upload_to='Images',blank=True,null=True)
+    is_deleted=models.BooleanField(default=False)
 
     class Meta:
         db_table='HomeDetails'
@@ -23,6 +24,7 @@ class Contact(models.Model):
     youtube_url=models.URLField(blank=True,null=True)
     whatsapp_url=models.URLField(blank=True,null=True) 
     linkedln_url=models.URLField(blank=True,null=True)
+    is_deleted=models.BooleanField(default=False)
     class Meta:
         db_table='Contact'
 
@@ -32,6 +34,7 @@ class Details(models.Model):
     image=models.ImageField(upload_to='Images',blank=True,null=True)
     title=models.CharField(max_length=200,blank=True,null=True)
     content=models.TextField(blank=True,null=True)
+    is_deleted=models.BooleanField(default=False)
     class Meta:
         db_table='Details'
 
@@ -44,6 +47,7 @@ class Experts(models.Model):
     photo=models.ImageField(upload_to='Images',blank=True,null=True)
     rating=models.IntegerField(blank=True,null=True)
     counselling=models.IntegerField(blank=True,null=True)
+    is_deleted=models.BooleanField(default=False)
     class Meta:
         db_table='Experts'
 

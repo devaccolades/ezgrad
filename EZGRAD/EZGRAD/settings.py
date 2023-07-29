@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'general',
     'question',
     'services',
+    'course',
 ]
 
 MIDDLEWARE = [
@@ -84,7 +85,7 @@ WSGI_APPLICATION = 'EZGRAD.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'EzgradDB',
         'USER':'postgres',
         'PASSWORD':'postgre123',

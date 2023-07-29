@@ -11,10 +11,14 @@ class ServiceType(BaseModel):
 
     def __str__(self):
         return str(self.id)
+
     
 class CourseType(models.Model):
     service=models.ForeignKey('services.ServiceType', on_delete=models.CASCADE, blank=True, null=True)
     course_type=models.CharField(max_length=100)
+    is_deleted=models.BooleanField(default=False)
+    
+    
     class Meta:
         db_table='CourseType'
         

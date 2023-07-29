@@ -36,7 +36,7 @@ def add_register(request):
                 "Message":"Registered Successfully "
 
             }
-        }
+        } 
     else:
         response_data={
             "StatusCode" : 6001,
@@ -50,16 +50,32 @@ def add_register(request):
 
 @api_view(['GET'])
 def view_register(request):
-    reg=Register.objects.all()
-    register=RegisterSerializer(reg,many=True)
-    return Response({"Message":"True","response":register.data})
+    if (reg:=Register.objects.filter(is_deleted=False)).exists():
+        serialized_data=RegisterSerializer(reg,
+                                           context={
+                                               "request":request,
+                                           },
+                                           many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
 
 @api_view(['PUT'])
-def edit_register(request,id):
+def edit_register(request,pk):
     name=request.data.get('name')
     email=request.data.get('email')
     mobile=request.data.get('mobile')
-    if(register:=Register.objects.filter(id=id)).exists():
+    if(register:=Register.objects.filter(pk=pk)).exists():
         reg=register.latest('id')
         if name:
             reg.name=name
@@ -68,10 +84,11 @@ def edit_register(request,id):
         if mobile:
             reg.mobile=mobile
         reg.save()
+
         response_data={
             "StatusCode":6000,
             "data":{
-                "title":"Suceess",
+                "title":"Success",
                 "Message":"Updated Successfully"
             }
         }
@@ -87,10 +104,11 @@ def edit_register(request,id):
 
 
 @api_view(['DELETE'])
-def delete_register(request,id):
-    if(register:=Register.objects.filter(id=id)).exists():
-        reg=register.latest('id')
-        reg.delete()
+def delete_register(request,pk):
+    if(reg:=Register.objects.filter(pk=pk,is_deleted=False)).exists():
+        register=reg.latest('id')
+        register.is_deleted=True
+        register.save()
         response_data={
             "data":{
                 "title":"Success",
