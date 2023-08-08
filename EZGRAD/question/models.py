@@ -15,7 +15,7 @@ class Options(models.Model):
 
 class RecordAnswer(models.Model):
     option=models.ForeignKey('question.Options',on_delete=models.CASCADE,blank=True,null=True)
-    userid=models.ForeignKey('general.Register',on_delete=models.CASCADE,blank=True,null=True)
+    userid=models.ForeignKey('general.StudentProfile',on_delete=models.CASCADE,blank=True,null=True)
     is_deleted=models.BooleanField(default=False)
     class Meta:
         db_table='RecordAnswer'

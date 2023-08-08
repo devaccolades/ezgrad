@@ -50,12 +50,29 @@ class Course(BaseModel):
 
     class Meta:
         db_table='Course'
+        
+
+class CourseSpecialization(models.Model):
+    course=models.ForeignKey('course.Course',on_delete=models.CASCADE,blank=True,null=True)
+    specialization=models.CharField(max_length=300,blank=True,null=True)
+    is_deleted=models.BooleanField(default=False)
+    class Meta:
+        db_table='CourseSpecialization'
 
 class Country(models.Model):
     country=models.CharField(max_length=200,blank=True,null=True)
     flag=models.ImageField(upload_to='Images',blank=True,null=True)
+    is_deleted=models.BooleanField(default=False)
     class Meta:
         db_table='Country'
+
+class Faq(models.Model):
+    course=models.ForeignKey('course.Course',on_delete=models.CASCADE,blank=True,null=True)
+    faq_question=models.TextField(blank=True,null=True)
+    faq_answer=models.TextField(blank=True,null=True)
+    is_deleted=models.BooleanField(default=False)
+    class Meta:
+        db_table='Faq'
 
 
 

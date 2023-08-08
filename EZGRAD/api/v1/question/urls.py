@@ -6,6 +6,7 @@ urlpatterns=[
     path('view-question/',views.view_question),
     path('edit-question/<int:id>',views.edit_question),
     path('delete-question/<int:id>',views.delete_question),
+    path('list-question/',views.list_question),
 
     path('add-options/',views.add_options),
     path('view-options/',views.view_options),

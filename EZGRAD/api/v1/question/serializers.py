@@ -8,11 +8,18 @@ class QuestionsSerializer(serializers.ModelSerializer):
             'question',
         )
 class OptionSerializer(serializers.ModelSerializer):
+    # question = serializers.SerializerMethodField()
     class Meta:
         model=Options
         fields=(
             'options',
+            # 'question',
         )
+    # def get_question(self, instance):
+    #     if instance.question:
+    #         return instance.question.question
+    #     else:
+    #         return None
 
 class RecordAnswerSerializer(serializers.ModelSerializer):
     class Meta:

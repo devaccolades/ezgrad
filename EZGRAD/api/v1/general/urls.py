@@ -3,10 +3,15 @@ from api.v1.general import views
 
 
 urlpatterns=[
-    path('add-register/',views.add_register),
-    path('view-register/',views.view_register),
-    path('edit-register/<pk>',views.edit_register),
-    path('delete-register/<pk>',views.delete_register),
+    path('register-student/',views.register_student),
+    path('view-studentprofile/',views.view_studentprofile),
+    path('edit-studentprofile/<pk>',views.edit_studentprofile),
+    path('delete-studentprofile/<pk>',views.delete_studentprofile),
+
+    path('create-chief-user/',views.create_chief_user),
+    path('chief-login/',views.chief_login),
+    path('student-login/',views.student_login),
+   
     # path('login/',views.UserLogin),
   
 

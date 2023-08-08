@@ -1,20 +1,23 @@
 from django.contrib import admin
-from home.models import HomeDetails,Contact,Details,Experts
+from home.models import HomeDetails,Contact,Details,Experts,Subbanner
 class HomeDetailsAdmin(admin.ModelAdmin):
     list_display=[
         'main_banner',
         'main_banner_url',
-        'sub_banner',
-        'sub_banner_url',
-        'project_logo',
         
     ]
 admin.site.register(HomeDetails,HomeDetailsAdmin)
 
 
+class SubbannerAdmin(admin.ModelAdmin):
+    list_display=[
+        'sub_banner',
+        'sub_banner_url',
+    ]
+admin.site.register(Subbanner,SubbannerAdmin)
+
 class ContactAdmin(admin.ModelAdmin):
     list_display=[
-        'logo',
         'about',
         'address',
         'phone',

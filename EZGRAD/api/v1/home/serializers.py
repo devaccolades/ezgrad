@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from home.models import Contact,Details,Experts,HomeDetails
+from home.models import Contact,Details,Experts,HomeDetails,Subbanner
 
 class HomeDetailsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -7,18 +7,21 @@ class HomeDetailsSerializer(serializers.ModelSerializer):
         fields=(
             'main_banner',
             'main_banner_url',
-            'sub_banner',
-            'sub_banner_url',
-            'project_logo',
+          
         )
 
-
+class SubbannerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Subbanner
+        fields=(
+            'sub_banner',
+            'sub_banner_url',
+        )
 
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model=Contact
         fields=(
-            'logo',
             'about',
             'address',
             'phone',

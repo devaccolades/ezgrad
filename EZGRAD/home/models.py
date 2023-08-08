@@ -3,18 +3,21 @@ from django.db import models
 class HomeDetails(models.Model):
     main_banner=models.ImageField(upload_to='Images',blank=True,null=True)
     main_banner_url=models.URLField(blank=True,null=True)
-    sub_banner=models.ImageField(upload_to='Images',blank=True,null=True)
-    sub_banner_url=models.URLField(blank=True,null=True)
-    project_logo=models.ImageField(upload_to='Images',blank=True,null=True)
     is_deleted=models.BooleanField(default=False)
 
     class Meta:
         db_table='HomeDetails'
 
+class Subbanner(models.Model):
+    sub_banner=models.ImageField(upload_to='Images',blank=True,null=True)
+    sub_banner_url=models.URLField(blank=True,null=True)
+    is_deleted=models.BooleanField(default=False)
+    class Meta:
+        db_table='Subbanner'
+
 
 
 class Contact(models.Model):
-    logo=models.ImageField(upload_to='Images',blank=True,null=True)
     about=models.TextField(blank=True,null=True)
     address=models.CharField(max_length=500,blank=True,null=True)
     phone=models.BigIntegerField(blank=True,null=True)

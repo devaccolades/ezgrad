@@ -8,8 +8,10 @@ from api.v1.services.serializers import ServiceSerializer,CourseTypeSerializer
 from rest_framework.decorators import api_view
 from general.functions import generate_serializer_errors
 from rest_framework import status
+from general.decorators import group_required
 
 @api_view(['POST'])
+@group_required(['ezgrad_admin'])
 def add_service(request):
     serialized_data=ServiceSerializer(data=request.data)
     if serialized_data.is_valid():
@@ -34,6 +36,7 @@ def add_service(request):
 
 
 @api_view(['GET'])
+@group_required(['ezgrad_admin'])
 def view_service(request):
     if (service:=ServiceType.objects.filter(is_deleted=False)).exists():
         serialized_data=ServiceSerializer(service,
@@ -60,6 +63,7 @@ def view_service(request):
 
 
 @api_view(['PUT'])
+@group_required(['ezgrad_admin'])
 def edit_service(request,pk):
     service=request.data.get('service')
     if(services:=ServiceType.objects.filter(pk=pk,is_deleted=False)).exists():
@@ -86,6 +90,7 @@ def edit_service(request,pk):
 
 
 @api_view(['DELETE'])
+@group_required(['ezgrad_admin'])
 def delete_service(request,pk):
     if(service:=ServiceType.objects.filter(pk=pk,is_deleted=False)).exists():
         s=service.latest('id')
@@ -109,7 +114,34 @@ def delete_service(request,pk):
     return Response({'app_data':response_data})
 
 
+@api_view(['GET'])
+def list_service(request):
+    if (service:=ServiceType.objects.filter(is_deleted=False)).exists():
+        serialized_data=ServiceSerializer(service,
+                                          context={
+                                              "request":request,
+                                          },
+                                          many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+
+
+
+
+
 @api_view(['POST'])
+@group_required(['ezgrad_admin'])
 def add_coursetype(request):
     serialized_data=CourseTypeSerializer(data=request.data)
     if serialized_data.is_valid():
@@ -144,6 +176,7 @@ def add_coursetype(request):
     return Response({'app_data':response_data})
 
 @api_view(['GET'])
+@group_required(['ezgrad_admin'])
 def view_coursetype(request):
     if (coursetype:=CourseType.objects.filter(is_deleted=False)).exists():
         serialized_data=CourseTypeSerializer(coursetype,
@@ -170,6 +203,7 @@ def view_coursetype(request):
 
 
 @api_view(['PUT'])
+@group_required(['ezgrad_admin'])
 def edit_coursetype(request,id):
     coursetype=request.data.get('course_type')
     if(coursetypes:=CourseType.objects.filter(id=id,is_deleted=False)).exists():
@@ -195,6 +229,7 @@ def edit_coursetype(request,id):
     return Response({'app_data':response_data})
 
 @api_view(['DELETE'])
+@group_required(['ezgrad_admin'])
 def delete_coursetype(request,id):
     if(coursetypes:=CourseType.objects.filter(id=id,is_deleted=False)).exists():
         c=coursetypes.latest('id')
@@ -218,12 +253,6 @@ def delete_coursetype(request,id):
     return Response({'app_data':response_data})
 
     
-
-
-
-
-
-
 
 
 

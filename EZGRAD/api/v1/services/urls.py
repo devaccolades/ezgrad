@@ -6,6 +6,7 @@ urlpatterns=[
     path('view-service/',views.view_service),
     path('edit-service/<pk>',views.edit_service),
     path('delete-service/<pk>',views.delete_service),
+    path('list-service/',views.list_service),
 
     path('add-coursetype/',views.add_coursetype),
     path('view-coursetype/',views.view_coursetype),

@@ -1,9 +1,9 @@
 from rest_framework import serializers
-from general.models import Register
+from general.models import StudentProfile
 
-class RegisterSerializer(serializers.ModelSerializer):
+class StudentProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Register
+        model=StudentProfile
         fields=(
             
             'name',
@@ -14,7 +14,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             'country',
         )
 
-class AddregisterSerializer(serializers.Serializer):
+class AddStudentProfileSerializer(serializers.Serializer):
     name=serializers.CharField()
     email=serializers.CharField()
     mobile=serializers.IntegerField()
@@ -22,3 +22,9 @@ class AddregisterSerializer(serializers.Serializer):
     dob=serializers.DateField()
     country=serializers.CharField()
 
+class ChiefProfileSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+class LoginSerializer(serializers.Serializer):
+    mobile = serializers.IntegerField()

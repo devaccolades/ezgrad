@@ -3,21 +3,22 @@ from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse
 from django.http import HttpResponse
 from rest_framework.response import Response
-from home.models import Contact,Details,Experts,HomeDetails
-from api.v1.home.serializers import ContactSerializer,DetailSerializer,ExpertSerializer,HomeDetailsSerializer
+from home.models import Contact,Details,Experts,HomeDetails,Subbanner
+from api.v1.home.serializers import ContactSerializer,DetailSerializer,ExpertSerializer,HomeDetailsSerializer,SubbannerSerializer
 from rest_framework.decorators import api_view
 from general.functions import generate_serializer_errors
+from general.decorators import group_required
+
 
 @api_view(['POST'])
+@group_required(['ezgrad_admin'])
 def add_homedetails(request):
+    
     serialized_data=HomeDetailsSerializer(data=request.data)
     if serialized_data.is_valid():
         banner=request.data['main_banner']
         banner_url=request.data['main_banner_url']
-        subbanner=request.data['sub_banner']
-        subbanner_url=request.data['sub_banner_url']
-        project_logo=request.data['project_logo']
-        b=HomeDetails.objects.create(main_banner=banner,main_banner_url=banner_url,sub_banner=subbanner,sub_banner_url=subbanner_url,project_logo=project_logo)
+        b=HomeDetails.objects.create(main_banner=banner,main_banner_url=banner_url)
         response_data={
             "StatusCode" : 6000,
             "data":{
@@ -37,6 +38,7 @@ def add_homedetails(request):
 
 
 @api_view(['GET'])
+@group_required(['ezgrad_admin'])
 def view_homedetails(request):
     if (homedetails:=HomeDetails.objects.filter(is_deleted=False)).exists():
         serialized_data=HomeDetailsSerializer(homedetails,
@@ -59,24 +61,16 @@ def view_homedetails(request):
     return Response({'app_data':response_data})
 
 @api_view(['PUT'])
+@group_required(['ezgrad_admin'])
 def edit_homedetails(request,id):
     banner=request.data.get('main_banner')
     banner_url=request.data.get('main_banner_url')
-    subbanner=request.data.get('sub_banner')
-    subbanner_url=request.data.get('subbanner_url')
-    project_logo=request.data.get('project_logo')
     if (home:=HomeDetails.objects.filter(id=id,is_deleted=False)).exists():
         homedata=home.latest('id')
         if banner:
             homedata.main_banner=banner
         if banner_url:
             homedata.main_banner_url=banner_url
-        if subbanner:
-            homedata.sub_banner=subbanner
-        if subbanner_url:
-            homedata.sub_banner_url=subbanner_url
-        if project_logo:
-            homedata.project_logo=project_logo
         homedata.save()
         response_data={
             "StatusCode" : 6000,
@@ -96,6 +90,7 @@ def edit_homedetails(request,id):
     return Response({'app_data':response_data})
 
 @api_view(['DELETE'])
+@group_required(['ezgrad_admin'])
 def delete_homedetails(request,id):
     if (home:=HomeDetails.objects.filter(id=id,is_deleted=False)).exists():
         homedetails=home.latest('id')
@@ -119,11 +114,162 @@ def delete_homedetails(request,id):
     return Response({'app_data':response_data})
 
 
+@api_view(['GET'])
+def list_homedetails(request):
+    if (homedata:=HomeDetails.objects.filter(is_deleted=False)).exists():
+        home_data=homedata.latest('id')
+        serialized_data=HomeDetailsSerializer(home_data,
+        context={
+            "request":request,
+        },
+        ).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+    
 @api_view(['POST'])
+@group_required(['ezgrad_admin'])
+def add_subbanner(request):
+    serialized_data=SubbannerSerializer(data=request.data)
+    if serialized_data.is_valid():
+        sub_banner=request.data['sub_banner']
+        sub_banner_url=request.data['sub_banner_url']
+        subbanner=Subbanner.objects.create(sub_banner=sub_banner,
+                                           sub_banner_url=sub_banner_url)
+        response_data={
+            "StatusCode":6000,
+            "data":{
+                "title":"Success",
+                "Message":"Added Successfully"
+            }
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":generate_serializer_errors(serialized_data._errors)
+            }
+        }
+    return Response({'app_data':response_data})
+
+
+@api_view(['GET'])
+@group_required(['ezgrad_admin'])
+def view_subbanner(request):
+    if (banner:=Subbanner.objects.filter(is_deleted=False)).exists():
+        serialized_data=SubbannerSerializer(banner,
+                                      context={
+                                          "request":request,
+                                      },
+                                      many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+
+@api_view(['PUT'])
+@group_required(['ezgrad_admin'])
+def edit_subbanner(request,id):
+    sub_banner=request.data.get('sub_banner')
+    sub_banner_url=request.data.get('sub_banner_url')
+    if (banner:=Subbanner.objects.filter(id=id,is_deleted=False)).exists():
+        subbanner=banner.latest('id')
+        if sub_banner:
+            subbanner.sub_banner=sub_banner
+        if sub_banner_url:
+            subbanner.sub_banner_url=sub_banner_url
+        subbanner.save()
+        response_data={
+            "StatusCode":6000,
+            "data":{
+                "title":"Success",
+                "Message":"Updated Successfully"
+            }
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+
+
+@api_view(['DELETE'])
+@group_required(['ezgrad_admin'])
+def delete_subbanner(request,id):
+    if (banner:=Subbanner.objects.filter(id=id,is_deleted=False)).exists():
+        subbanner=banner.latest('id')
+        subbanner.is_deleted=True
+        subbanner.save()
+        response_data={
+            "StatusCode":6000,
+            "data":{
+                "title":"Success",
+                "Message":"Deleted Successfully"
+            }
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+
+@api_view(['GET'])
+def list_subbanner(request):
+    if (banner:=Subbanner.objects.filter(is_deleted=False)).exists():
+        serialized_data=SubbannerSerializer(banner,
+                                            context={
+                                                "request":request,
+                                            },
+                                            many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "Statucode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+    
+
+
+@api_view(['POST'])
+@group_required(['ezgrad_admin'])
 def add_contact(request):
     serialized_data=ContactSerializer(data=request.data)
     if serialized_data.is_valid():
-        logo=request.data['logo']
         about=request.data['about']
         address=request.data['address']
         phone=request.data['phone']
@@ -134,8 +280,7 @@ def add_contact(request):
         whatsapp_url=request.data['whatsapp_url']
         linkedln_url=request.data['linkedln_url']
 
-        contact=Contact.objects.create(logo=logo,
-                                       about=about,
+        contact=Contact.objects.create(about=about,
                                        address=address,
                                        phone=phone,
                                        email=email,
@@ -164,6 +309,7 @@ def add_contact(request):
 
 
 @api_view(['GET'])
+@group_required(['ezgrad_admin'])
 def view_contact(request):
     if (contact:=Contact.objects.filter(is_deleted=False)).exists():
         serialized_data=ContactSerializer(contact,
@@ -186,8 +332,8 @@ def view_contact(request):
     return Response({'app_data':response_data})
 
 @api_view(['PUT'])
+@group_required(['ezgrad_admin'])
 def edit_contact(request,id):
-    logo=request.data.get('logo')
     about=request.data.get('about')
     address=request.data.get('address')
     phone=request.data.get('phone')
@@ -199,8 +345,6 @@ def edit_contact(request,id):
     linkedln_url=request.data.get('whatsapp_url')
     if (c:=Contact.objects.filter(id=id,is_deleted=False)).exists():
         contact=c.latest('id')
-        if logo:
-            contact.logo=logo
         if about:
             contact.about=about
         if address:
@@ -239,6 +383,7 @@ def edit_contact(request,id):
 
 
 @api_view(['DELETE'])
+@group_required(['ezgrad_admin'])
 def delete_contact(request,id):
     if (c:=Contact.objects.filter(id=id,is_deleted=False)).exists():
         contact=c.latest('id')
@@ -263,7 +408,31 @@ def delete_contact(request,id):
     return Response({'app_data':response_data})
 
 
+@api_view(['GET'])
+def list_contact(request):
+    if (contact:=Contact.objects.filter(is_deleted=False)).exists():
+        contact_data=contact.latest('id')
+        serialized_data=ContactSerializer(contact_data,
+                         context={
+                             "request":request,
+                         },).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app-data':response_data})
+
+
 @api_view(['POST'])
+@group_required(['ezgrad_admin'])
 def add_details(request):
     serialized_data=DetailSerializer(data=request.data)
     if serialized_data.is_valid():
@@ -294,6 +463,7 @@ def add_details(request):
 
 
 @api_view(['GET'])
+@group_required(['ezgrad_admin'])
 def view_details(request):
     if (details:=Details.objects.filter(is_deleted=False)).exists():
         serialized_data=DetailSerializer(details,
@@ -316,6 +486,7 @@ def view_details(request):
     return Response({'app_data':response_data})
 
 @api_view(['PUT'])
+@group_required(['ezgrad_admin'])
 def edit_details(request,id):
     heading=request.data.get('heading')
     body=request.data.get('body')
@@ -354,6 +525,7 @@ def edit_details(request,id):
 
     
 @api_view(['DELETE'])
+@group_required(['ezgrad_admin'])
 def delete_details(request,id):
     if (d:=Details.objects.filter(id=id,is_deleted=False)).exists():
         details=d.latest('id')
@@ -377,7 +549,31 @@ def delete_details(request,id):
     return Response({'app_data':response_data})
 
 
+@api_view(['GET'])
+def list_details(request):
+    if (details:=Details.objects.filter(is_deleted=False)).exists():
+        serialized_data=DetailSerializer(details,
+                                         context={
+                                             "request":request,
+                                         },
+                                         many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+
+
 @api_view(['POST'])
+@group_required(['ezgrad_admin'])
 def add_experts(request):
     serialized_data=ExpertSerializer(data=request.data)
     if serialized_data.is_valid():
@@ -420,6 +616,7 @@ def add_experts(request):
 
 
 @api_view(['GET'])
+@group_required(['ezgrad_admin'])
 def view_experts(request):
     if (expert:=Experts.objects.filter(is_deleted=False)).exists():
         serialized_data=ExpertSerializer(expert,
@@ -442,6 +639,7 @@ def view_experts(request):
     return Response({'app_data':response_data})
 
 @api_view(['PUT'])
+@group_required(['ezgrad_admin'])
 def edit_experts(request,id):
     title=request.data.get('title')
     content=request.data.get('content')
@@ -490,6 +688,7 @@ def edit_experts(request,id):
 
 
 @api_view(['DELETE'])
+@group_required(['ezgrad_admin'])
 def delete_experts(request,id):
     if (exp:=Experts.objects.filter(id=id,is_deleted=False)).exists():
         expert=exp.latest('id')
@@ -511,6 +710,29 @@ def delete_experts(request,id):
             }
         }
     return Response({'app_data':response_data})
+
+
+@api_view(['GET'])
+def list_experts(request):
+    if (experts:=Experts.objects.filter(is_deleted=False)).exists():
+        serialized_data=ExpertSerializer(experts,
+                                         context={
+                                             "request":request,
+                                         },
+                                         many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':serialized_data})
 
 
 
