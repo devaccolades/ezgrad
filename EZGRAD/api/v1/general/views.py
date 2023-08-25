@@ -3,8 +3,11 @@ from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse
 from django.http import HttpResponse
 from rest_framework.response import Response
-from general.models import StudentProfile,ChiefProfile
-from api.v1.general.serializers import StudentProfileSerializer,AddStudentProfileSerializer,ChiefProfileSerializer,LoginSerializer
+from general.models import StudentProfile,ChiefProfile,ReviewStudent
+from course.models import Country
+from question.models import RecordAnswer,Options
+from api.v1.question.serializers import RecordAnswerSerializer,OptionSerializer
+from api.v1.general.serializers import StudentProfileSerializer,ReviewStudentSerializer,AddStudentProfileSerializer,ChiefProfileSerializer,LoginSerializer
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.permissions import AllowAny
 from general.functions import generate_serializer_errors,check_username,randomnumber
@@ -26,14 +29,11 @@ def register_student(request):
         mobile=request.data['mobile']
         gender=request.data['gender']
         dob=request.data['dob']
-        country=request.data['country']
 
-        if (reg:=StudentProfile.objects.filter(name=name,email=email,mobile=mobile,gender=gender,dob=dob,
-            country=country)).exists():
+        if (reg:=StudentProfile.objects.filter(name=name,email=email,mobile=mobile,gender=gender,dob=dob)).exists():
              return Response({"Message":"Already Exists"})
         else:
-            student_profile=StudentProfile.objects.create(name=name,email=email,mobile=mobile,gender=gender,dob=dob,
-            country=country)
+            student_profile=StudentProfile.objects.create(name=name,email=email,mobile=mobile,gender=gender,dob=dob)
 
             password = User.objects.make_random_password(length=12, allowed_chars="abcdefghjkmnpqrstuvwzyx#@*%$ABCDEFGHJKLMNPQRSTUVWXYZ23456789")
             sliced_phone = mobile[-4:]
@@ -150,7 +150,97 @@ def delete_studentprofile(request,pk):
         }
     return Response({'app_data':response_data})
 
+@api_view(['GET'])
+@group_required(['ezgrad_student'])
+def list_studentdetails(request,pk):
+     if (student:=StudentProfile.objects.filter(pk=pk,is_deleted=False)).exists():
+          serialized_data=StudentProfileSerializer(student,
+                                                   context={
+                                                        "request":request,
+                                                   },many=True,).data
+          response_data={
+               "StatusCode":6000,
+               "data":serialized_data
+          }
+     else:
+          response_data={
+               "StatusCode":6001,
+               "data":{
+                    "title":"Failed",
+                    "Message":"Not Found"
+               }
+          }
+     return Response({'app_data':response_data})
 
+@api_view(['GET'])
+@group_required(['ezgrad_student'])
+def list_studentprofile(request,pk):
+     if (record:=RecordAnswer.objects.filter(userid=pk,is_deleted=False)).exists():
+          serialized_data=RecordAnswerSerializer(record,
+                                                 context={
+                                                      'request':request,
+                                                 },
+                                                 many=True,).data
+          response_data={
+               "StatusCode":6000,
+               "data":serialized_data
+          }
+     else:
+          response_data={
+               "StatusCode":6001,
+               "data":{
+                    "title":"Failed",
+                    "Message":"Not Found"
+               }
+          }
+     return Response({'app_data':response_data})
+
+
+@api_view(['POST'])
+@group_required(['ezgrad_student'])
+def update_selected_option(request,pk):
+    record_answer=request.data.get('updated_records')
+    if record_answer:
+        for i in record_answer:
+            id=i['recordid']
+            value=i['updated_value']
+            if (recordanswer:=RecordAnswer.objects.filter(userid=pk,id=id,is_deleted=False)).exists():
+                    for i in record_answer:
+                        id=i['recordid']
+                        value=i['updated_value']
+                        if (options:=RecordAnswer.objects.filter(pk=id,is_deleted=False)).exists():
+                            option = options.latest("id")
+                            if option:
+                                new_option1 = Options.objects.get(id=value)
+                                option.option=new_option1
+                                option.save()
+                    response_data={
+                        "StatusCode":6000,
+                        "data":{
+                                "title":"Success",
+                                "Message":"Updated Successfully"
+                            }
+                    }
+                
+            else:
+                    response_data={
+                        "StatusCode":6001,
+                        "data":{
+                            "title":"Failed",
+                            "Message":"Not Found"
+                        }
+                }
+    else:
+        response_data={
+                  "StatusCode":6001,
+                  "data":{
+                       "title":"Failed",
+                       "Message":"Not Found"
+                  }
+             }
+    return Response({'app_data':response_data})
+                    
+        
 @api_view(['POST'])
 @group_required(['ezgrad_admin'])
 def create_chief_user(request):
@@ -159,7 +249,6 @@ def create_chief_user(request):
         username=request.data['username']
         password=request.data['password']
         confirm_password=request.data['confirm_password']
-
         if password==confirm_password:
             set_password=password
             if not ChiefProfile.objects.filter(username=username,password=password).exists():
@@ -280,7 +369,8 @@ def chief_login(request):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+# @permission_classes([AllowAny])
+@group_required(['ezgrad_student'])
 def student_login(request):
      serialized_data=LoginSerializer(data=request.data)
      if serialized_data.is_valid():
@@ -344,6 +434,59 @@ def student_login(request):
      return Response({'app_data' : response_data}, status=status.HTTP_200_OK)
 
 
+@api_view(['POST'])
+@group_required(['ezgrad_student'])
+def save_student_review(request):
+     serialized_data=ReviewStudentSerializer(data=request.data)
+     if serialized_data.is_valid():
+          name=request.POST['name']
+          rating=request.POST['rating']
+          review=request.POST['review']
+          student_review=ReviewStudent.objects.create(name=name,
+                                                      rating=rating,
+                                                      review=review)
+          response_data={
+               "StatusCode":6000,
+               "data":{
+                    "title":"Success",
+                    "Message":"Added Successfully"
+               }
+          }
+     else:
+          response_data={
+               "StatusCode":6001,
+               "data":{
+                    "title":"Failed",
+                    "Message":generate_serializer_errors(serialized_data._errors)
+               }
+          }
+     return Response({'app_data':response_data})
+     
+
+@api_view(['GET'])
+def list_student_review(request):
+     if (student:=ReviewStudent.objects.filter(is_deleted=False)).exists():
+          serialized_data=ReviewStudentSerializer(student,
+                                        context={
+                                             "request":request,
+                                        },
+                                        many=True,).data
+          response_data={
+               "StatusCode":6000,
+               "data":serialized_data
+          }
+     else:
+          response_data={
+               "StatusCode":6001,
+               "data":{
+                    "title":"Failed",
+                    "Message":"Not Found"
+               }
+          }
+          
+     return Response({'app_data':response_data})
+          
+     
             
 
 

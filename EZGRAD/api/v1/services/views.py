@@ -128,11 +128,8 @@ def list_service(request):
         }
     else:
         response_data={
-            "StatusCode":6001,
-            "data":{
-                "title":"Failed",
-                "Message":"Not Found"
-            }
+            "StatusCode":6000,
+            "data":[]
         }
     return Response({'app_data':response_data})
 
@@ -253,8 +250,35 @@ def delete_coursetype(request,id):
     return Response({'app_data':response_data})
 
     
-
-
+@api_view(['GET'])
+def list_coursetype(request):
+    service=request.data.get('service')
+    if (services:=ServiceType.objects.filter(id=service,is_deleted=False)).exists():
+        s=services.latest('id')
+        if (coursetype:=CourseType.objects.filter(service=s,is_deleted=False)).exists():
+            serialized_data=CourseTypeSerializer(coursetype,
+                                              context={
+                                                  'request':request,
+                                              },
+                                              many=True,).data
+        
+            response_data={
+                "StatusCode":6000,
+                "CourseType":serialized_data
+                  }
+                
+        else:
+            response_data={
+                "StatusCode":6000,
+                "data":[]
+            }
+    else:
+        response_data={
+            "StatusCode":6000,
+            "data":[]
+        }
+            
+    return Response({'app_data':response_data})
 
 
 

@@ -6,12 +6,14 @@ urlpatterns=[
     path('view-homedetails/',views.view_homedetails),
     path('edit-homedetails/<int:id>',views.edit_homedetails),
     path('delete-homedetails/<int:id>',views.delete_homedetails),
+    path('hide-homedetails/<int:id>',views.hide_homedetails),
     path('list-homedetails/',views.list_homedetails),
 
     path('add-subbanner/',views.add_subbanner),
     path('view-subbanner/',views.view_subbanner),
     path('edit-subbanner/<int:id>',views.edit_subbanner),
     path('delete-subbanner/<int:id>',views.delete_subbanner),
+    path('hide-subbanner/<int:id>',views.hide_subbanner),
     path('list-subbanner/',views.list_subbanner),
 
 

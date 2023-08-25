@@ -21,5 +21,8 @@ class CourseType(models.Model):
     
     class Meta:
         db_table='CourseType'
+
+    def __str__(self):
+        return self.course_type
         
 # Create your models here.

@@ -12,7 +12,9 @@ urlpatterns=[
     path('approval-list/',views.approval_list),
     path('list-university-logo/',views.list_university_logo),
     path('list-universitylogo-studentform/',views.list_universitylogo_studentform),
-    path('list-popular-university',views.list_popular_university),
+    path('list-popular-university/',views.list_popular_university),
+    path('count-university/',views.count_university),
+    path('compare-university/',views.compare_university),
 
     path('add-facts/',views.add_facts),
     path('view-facts/',views.view_facts),
@@ -41,6 +43,8 @@ urlpatterns=[
     path('view-country/',views.view_country),
     path('edit-country/<int:id>',views.edit_country),
     path('delete-country/<int:id>',views.delete_country),
+    path('list-country/',views.list_country),
+    
 
     path('add-faq/',views.add_faq),
     path('view-faq/',views.view_faq),
@@ -48,6 +52,19 @@ urlpatterns=[
     path('delete-faq/<int:id>',views.delete_faq),
     path('list-faq/<pk>',views.list_faq),
 
+    path('add-food-facility/',views.add_food_facility),
+    path('view-food-facility/',views.view_food_facility),
+    path('edit-food-facility/<int:id>',views.edit_food_facility),
+    path('delete-food-facility/<int:id>',views.delete_food_facility),
+    path('list-food-facility/',views.list_food_facility),
+
+    path('add-hostel/',views.add_hostel),
+    path('view-hostel/',views.view_hostel),
+    path('edit-hostel/<int:id>',views.edit_hostel),
+    path('delete-hostel/<int:id>',views.delete_hostel),
+    path('list-hostel/<pk>',views.list_hostel),
+
+    path('convert-currency/',views.convert_currency),
  
 
    

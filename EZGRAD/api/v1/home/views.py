@@ -13,7 +13,6 @@ from general.decorators import group_required
 @api_view(['POST'])
 @group_required(['ezgrad_admin'])
 def add_homedetails(request):
-    
     serialized_data=HomeDetailsSerializer(data=request.data)
     if serialized_data.is_valid():
         banner=request.data['main_banner']
@@ -114,9 +113,34 @@ def delete_homedetails(request,id):
     return Response({'app_data':response_data})
 
 
+@api_view(['PUT'])
+@group_required(['ezgrad-admin'])
+def hide_homedetails(request,id):
+    if (homedata:=HomeDetails.objects.filter(id=id,is_deleted=False,status="active")).exists():
+        home_data=homedata.latest('id')
+        home_data.status="hidden"
+        home_data.save()
+        response_data={
+            "StatusCode":6000,
+            "data":{
+                "title":"Success",
+                "Message":"Updated Successfully"
+            }
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+
+
 @api_view(['GET'])
 def list_homedetails(request):
-    if (homedata:=HomeDetails.objects.filter(is_deleted=False)).exists():
+    if (homedata:=HomeDetails.objects.filter(is_deleted=False,status="active")).exists():
         home_data=homedata.latest('id')
         serialized_data=HomeDetailsSerializer(home_data,
         context={
@@ -241,9 +265,35 @@ def delete_subbanner(request,id):
         }
     return Response({'app_data':response_data})
 
+
+@api_view(['PUT'])
+@group_required(['ezgrad_admin'])
+def hide_subbanner(request,id):
+    if (subbanner:=Subbanner.objects.filter(id=id,is_deleted=False,status="active")).exists():
+        s=subbanner.latest('id')
+        s.status="hidden"
+        s.save()
+        response_data={
+            "StatusCode":6000,
+            "data":{
+                "title":"Success",
+                "Message":"Updated Successfully"
+            }
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+
+
 @api_view(['GET'])
 def list_subbanner(request):
-    if (banner:=Subbanner.objects.filter(is_deleted=False)).exists():
+    if (banner:=Subbanner.objects.filter(is_deleted=False,status="active")).exists():
         serialized_data=SubbannerSerializer(banner,
                                             context={
                                                 "request":request,

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from course.models import University,Facts,Approval,Course,Country,CourseSpecialization,Faq
+from course.models import University,Facts,Approval,Course,Country,CourseSpecialization,Faq,FoodFacility,Hostel
 
 class UniversitySerializer(serializers.ModelSerializer):
 
@@ -17,19 +17,35 @@ class UniversitySerializer(serializers.ModelSerializer):
         )
     
 class FactSerializer(serializers.ModelSerializer):
+    university=serializers.SerializerMethodField()
     class Meta:
         model=Facts
         fields=(
+            'university',
+            'id',
             'facts',
+           
         )
+    def get_university(self,instance):
+        if instance.university:
+            return instance.university.university_name
+        else:
+            return None
 
 class ApprovalSerializer(serializers.ModelSerializer):
+    university=serializers.SerializerMethodField()
     class Meta:
         model=Approval
         fields=(
+            'university',
             'approved_by',
             'logo',
         )
+    def get_university(self,instance):
+        if instance.university:
+            return instance.university.university_name
+        else:
+            return None
 
 class CourseviewSerializer(serializers.ModelSerializer):
     university = serializers.SerializerMethodField()
@@ -81,11 +97,19 @@ class CourseSerializer(serializers.ModelSerializer):
             
         )
 class CourseSpecializationSerializer(serializers.ModelSerializer):
+    course=serializers.SerializerMethodField()
     class Meta:
         model=CourseSpecialization
         fields=(
+            'course',
             'specialization',
+            
         )
+    def get_course(self,instance):
+        if instance.course:
+            return instance.course.course_name
+        else:
+            return None
 
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
@@ -101,4 +125,25 @@ class FaqSerializer(serializers.ModelSerializer):
         fields=(
             'faq_question',
             'faq_answer',
+        )
+
+class FoodFacilitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model=FoodFacility
+        fields=(
+            'university',
+            'name',
+            'photo',
+            'fees',
+        )
+
+class HostelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Hostel
+        fields=(
+            'university',
+            'hostel_name',
+            'hostel_image',
+            'distance',
+            'fees',
         )

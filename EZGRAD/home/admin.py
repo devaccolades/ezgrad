@@ -2,6 +2,7 @@ from django.contrib import admin
 from home.models import HomeDetails,Contact,Details,Experts,Subbanner
 class HomeDetailsAdmin(admin.ModelAdmin):
     list_display=[
+        'id',
         'main_banner',
         'main_banner_url',
         
@@ -11,6 +12,7 @@ admin.site.register(HomeDetails,HomeDetailsAdmin)
 
 class SubbannerAdmin(admin.ModelAdmin):
     list_display=[
+        'id',
         'sub_banner',
         'sub_banner_url',
     ]
@@ -18,6 +20,7 @@ admin.site.register(Subbanner,SubbannerAdmin)
 
 class ContactAdmin(admin.ModelAdmin):
     list_display=[
+        'id',
         'about',
         'address',
         'phone',
@@ -30,10 +33,9 @@ class ContactAdmin(admin.ModelAdmin):
     ]
 admin.site.register(Contact,ContactAdmin)
 
-
-
 class DetailsAdmin(admin.ModelAdmin):
     list_display=[
+        'id',
         'heading',
         'body',
         'image',
@@ -46,6 +48,7 @@ admin.site.register(Details,DetailsAdmin)
 
 class ExpertsAdmin(admin.ModelAdmin):
     list_display=[
+        'id',
         'title',
         'content',
         'name',

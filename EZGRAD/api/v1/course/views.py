@@ -3,13 +3,14 @@ from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse
 from django.http import HttpResponse
 from rest_framework.response import Response
-from course.models import University,Facts,Approval,Course,Country,CourseSpecialization,Faq
+from course.models import University,Facts,Approval,Course,Country,CourseSpecialization,Faq,FoodFacility,Hostel
 from services.models import CourseType,ServiceType
 from api.v1.services.serializers import ServiceSerializer
-from api.v1.course.serializers import UniversitySerializer,FactSerializer,CourseviewSerializer,FaqSerializer,ApprovalSerializer,CourseSerializer,CourseSpecializationSerializer,CountrySerializer
+from api.v1.course.serializers import FoodFacilitySerializer,UniversitySerializer,FactSerializer,HostelSerializer,CourseviewSerializer,FaqSerializer,ApprovalSerializer,CourseSerializer,CourseSpecializationSerializer,CountrySerializer
 from rest_framework.decorators import api_view
 from general.functions import generate_serializer_errors
 from general.decorators import group_required
+from forex_python.converter import CurrencyRates
 
 @api_view(['POST'])
 @group_required(['ezgrad_admin'])
@@ -24,9 +25,7 @@ def add_university(request):
         coursetype=request.data['coursetype']
         country=request.data.get('country')
         if (coursetypes:=CourseType.objects.filter(id=coursetype)).exists():
-            coursetypes=CourseType.objects.get(id=coursetype)
-        else:
-            coursetype=None
+            coursetypes=coursetypes.latest('id')
         university=University.objects.create(coursetype=coursetypes,
                                              university_logo=logo,
                                              university_name=name,
@@ -176,7 +175,7 @@ def list_course_studentform(request):
     course=request.data.get('course')
     country=request.data.get('country')
     if course and country:
-        courses = Course.objects.filter(course_name=course, university__country__in=country)
+        courses = Course.objects.filter(id=course, university__country__in=country)
         if courses.exists():
             serialized_data = CourseSerializer(courses, context={"request": request}, many=True).data
             response_data = {
@@ -241,6 +240,49 @@ def list_popular_university(request):
     return Response({'app_data':response_data,"service":service_name})
 
 
+@api_view(['GET'])
+def count_university(request):
+    coursetype = request.data.get('coursetype')  
+    coursename = request.data.get('coursename')  
+    if (course_type:= CourseType.objects.get(id=coursetype, is_deleted=False)):
+        if (course := Course.objects.filter(course_name=coursename, university__coursetype=course_type, is_deleted=False)).exists():
+            university_count = course.count()
+            response_data = {
+            "StatusCode": 6000,
+            "data": university_count
+        }
+        else:
+            response_data = {
+            "StatusCode": 6001,
+            "data":[]
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":[]
+        }
+
+    return Response({'app_data': response_data})
+
+
+@api_view(['GET'])
+def compare_university(request):
+    universities=request.data.getlist('university')
+    if (university:=University.objects.filter(id__in=universities,is_deleted=False)).exists():
+        serialized_data=UniversitySerializer(university,
+                                             context={
+                                                 'request':request,
+                                             },many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":[]
+        }
+    return Response({'app_data':response_data})
 
 @api_view(['POST'])
 @group_required(['ezgrad_admin'])
@@ -548,7 +590,7 @@ def approval_list(request):
         response_data={
             "StatusCode":6001,
             "data":{
-                "title":"Success",
+                "title":"Failed",
                 "data":"Not Found"
             }
         }
@@ -902,27 +944,18 @@ def list_courses(request):
             else:
                  response_data={
                 "StatusCode":6001,
-                "data":{
-                    "title":"Failed",
-                    "Message":"Not Found"
-                }
+                "data":[]
             }
         else:
             response_data={
                 "StatusCode":6001,
-                "data":{
-                    "title":"Failed",
-                    "Message":"Not Found"
-                }
+                "data":[]
             }
 
     else:
             response_data={
                 "StatusCode":6001,
-                "data":{
-                    "title":"Failed",
-                    "Message":"Not Found"
-                }
+                "data":[]
             }
     return Response({'app_data':response_data})
 
@@ -1009,6 +1042,8 @@ def edit_country(request,id):
     return Response({'app_data':response_data})
 
 
+
+
 @api_view(['DELETE'])
 @group_required(['ezgrad_admin'])
 def delete_country(request,id):
@@ -1032,6 +1067,42 @@ def delete_country(request,id):
             }
         }
     return Response({'app_data':response_data})
+
+
+@api_view(['GET'])
+def list_country(request):
+    coursetype = request.data.get('coursetype')  
+    coursename = request.data.get('coursename')  
+    if (course_type:= CourseType.objects.get(id=coursetype, is_deleted=False)):
+        if (course := Course.objects.filter(course_name=coursename, university__coursetype=course_type, is_deleted=False)).exists():
+            serialized_data=CourseviewSerializer(course,
+                                                 context={
+                                                     'request':request,
+                                                 },many=True,).data
+            response_data={
+                "StatusCode":6000,
+                "data":serialized_data
+            }
+        else:
+            response_data={
+                "StatusCode":6001,
+                "data":[]
+            }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":[]
+        }
+    return Response({'app_data':response_data})
+
+
+
+    
+        
+        
+
+
+        
 
 
 @api_view(['POST'])
@@ -1077,6 +1148,7 @@ def view_faq(request):
         }
     else:
         response_data={
+            "StatusCode":6001,
             "data":{
                 "title":"Failed",
                 "Message":"Not Found"
@@ -1105,7 +1177,7 @@ def edit_faq(request,id):
             }
         else:
             response_data={
-                "StatusCode":6000,
+                "StatusCode":6001,
                 "data":{
                     "title":"Failed",
                     "Message":"Not Found"
@@ -1158,6 +1230,326 @@ def list_faq(request,pk):
             }
         }
     return Response({'app_data':response_data})
+
+
+@api_view(['POST'])
+@group_required(['ezgrad_admin'])
+def add_food_facility(request):
+    serialized_data=FoodFacilitySerializer(data=request.data)
+    if serialized_data.is_valid():
+        university=request.data.get('university')
+        name=request.data['name']
+        photo=request.data['photo']
+        fees=request.data['fees']
+        if (university:=University.objects.filter(id=university,is_deleted=False)).exists():
+            university=university.latest('id')
+            foodfacility=FoodFacility.objects.create(university=university,name=name,photo=photo,fees=fees)
+            response_data={
+                "StatusCode":6000,
+                "data":{
+                    "title":"Success",
+                    "Message":"Added Successfully"
+                }
+            }
+        else:
+            response_data={
+                "StatusCode":6001,
+                "data":{
+                    "title":"Failed",
+                    "Message":"University Not Found"
+                }
+            }
+    else:
+            response_data={
+                "StatusCode":6001,
+                "data":{
+                    "title":"Failed",
+                    "Message":generate_serializer_errors(serialized_data._errors)
+                }
+            }
+    return Response({'app_data':response_data})
+
+
+@api_view(['GET'])
+@group_required(['ezgrad_admin'])
+def view_food_facility(request):
+    if (foodfacility:=FoodFacility.objects.filter(is_deleted=False)).exists():
+        serialized_data=FoodFacilitySerializer(foodfacility,
+                                               context={
+                                                   "request":request,
+                                               },many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+
+
+@api_view(['PUT'])
+@group_required(['ezgrad_admin'])
+def edit_food_facility(request,id):
+    name=request.data.get('name')
+    photo=request.data.get('photo')
+    fees=request.data.get('fees')
+    if (foodfacility:=FoodFacility.objects.filter(id=id,is_deleted=False)).exists():
+        food=foodfacility.latest('id')
+        if name:
+            food.name=name
+        if photo:
+            food.photo=photo
+        if fees:
+            food.fees=fees
+        food.save()
+        response_data={
+            "StatusCode":6000,
+            "data":{
+                "title":"Success",
+                "Message":"Updated Successfully"
+            }
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+
+
+@api_view(['DELETE'])
+@group_required(['ezgrad_admin'])
+def delete_food_facility(request,id):
+    if (foodfacility:=FoodFacility.objects.filter(id=id,is_deleted=False)).exists():
+        food=foodfacility.latest('id')
+        food.is_deleted=True
+        food.save()
+        response_data={
+            "StatusCode":6000,
+            "data":{
+                "title":"Success",
+                "Message":"Deleted Successfully"
+            }
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+
+
+@api_view(['GET'])
+def list_food_facility(request):
+    university=request.data.get('university')
+    if (food:=FoodFacility.objects.filter(university=university,is_deleted=False)).exists():
+        serialized_data=FoodFacilitySerializer(food,
+                                               context={
+                                                   "request":request,
+                                               },many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+
+@api_view(['POST'])
+@group_required(['ezgrad_admin'])
+def add_hostel(request):
+    serialized_data=HostelSerializer(data=request.data)
+    if serialized_data.is_valid():
+        university=request.data.get('university')
+        if (university:=University.objects.filter(id=university,is_deleted=False)).exists():
+            university_id=university.latest('id')
+            hostel_name=request.data['hostel_name']
+            hostel_image=request.data['hostel_image']
+            distance=request.data['distance']
+            fees=request.data['fees']
+            hostel=Hostel.objects.create(university=university_id,
+                                         hostel_name=hostel_name,
+                                         hostel_image=hostel_image,
+                                         distance=distance,
+                                         fees=fees)
+            response_data={
+                "StatusCode":6000,
+                "data":{
+                    "title":"Success",
+                    "Message":"Successfully Added"
+                }
+            }
+        else:
+            response_data={
+                "StatusCode":6001,
+                "data":{
+                    "title":"Failed",
+                    "Message":"University Not Found"
+                }       
+            }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":generate_serializer_errors(serialized_data._errors)
+            }
+        }
+    return Response({'app_data':response_data})
+    
+@api_view(['GET'])
+@group_required(['ezgrad_admin'])
+def view_hostel(request):
+    if (hostel:=Hostel.objects.filter(is_deleted=False)).exists():
+        serialized_data=HostelSerializer(hostel,
+                                         context={
+                                             'request':request,
+                                         },many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+
+@api_view(['PUT'])
+@group_required(['ezgrad_admin'])
+def edit_hostel(request,id):
+    hostel_name=request.data.get('hostel_name')
+    hostel_image=request.data.get('hostel_image')
+    distance=request.data.get('distance')
+    fees=request.data.get('fees')
+    if (hostel:=Hostel.objects.filter(id=id,is_deleted=False)).exists():
+        hostel=hostel.latest('id')
+        if hostel_name:
+            hostel.hostel_name=hostel_name
+        if hostel_image:
+            hostel.hostel_image=hostel_image
+        if distance:
+            hostel.distance=distance
+        if fees:
+            hostel.fees=fees
+        hostel.save()
+        response_data={
+            "StatusCode":6000,
+            "data":{
+                "title":"Success",
+                "Message":"Updated Successfully"
+            }
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Failed"
+            }
+        }
+    return Response({'app_data':response_data})
+
+
+@api_view(['DELETE'])
+@group_required(['ezgrad_admin'])
+def delete_hostel(request,id):
+    if (hostel:=Hostel.objects.filter(id=id,is_deleted=False)).exists():
+        hostel=hostel.latest('id')
+        hostel.is_deleted=True
+        hostel.save()
+        response_data={
+            "StatusCode":6000,
+            "data":{
+                "title":"Success",
+                "Message":"Deleted Successfully"
+            }
+        }
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+
+@api_view(['GET'])
+def list_hostel(request,pk):
+    if (hostel:=Hostel.objects.filter(university=pk,is_deleted=False)).exists():
+        serialized_data=HostelSerializer(hostel,
+                                         context={
+                                             'request':request,
+                                         },many=True,).data
+        response_data={
+            "StatusCode":6000,
+            "data":serialized_data
+        }       
+    else:
+        response_data={
+            "StatusCode":6001,
+            "data":{
+                "title":"Failed",
+                "Message":"Not Found"
+            }
+        }
+    return Response({'app_data':response_data})
+
+
+@api_view(['GET'])
+def convert_currency(request):
+      amount_inr =  float(request.data.get('amount_inr'))
+      target_currency = request.data.get('target_currency')
+      
+        # Perform the currency conversion
+      c = CurrencyRates()
+      converted_amount = c.convert("INR", target_currency, amount_inr)
+
+      return Response({'converted_amount': converted_amount})
+
+
+
+
+
+
+
+
+            
+
+
+
+
+
+
+
+    
+
+
+
+  
 
 
         

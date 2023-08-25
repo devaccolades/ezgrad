@@ -12,6 +12,7 @@ urlpatterns=[
     path('view-coursetype/',views.view_coursetype),
     path('edit-coursetype/<int:id>',views.edit_coursetype),
     path('delete-coursetype/<int:id>',views.delete_coursetype),
+    path('list-coursetype/',views.list_coursetype),
     
 
 

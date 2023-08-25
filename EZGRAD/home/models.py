@@ -3,17 +3,25 @@ from django.db import models
 class HomeDetails(models.Model):
     main_banner=models.ImageField(upload_to='Images',blank=True,null=True)
     main_banner_url=models.URLField(blank=True,null=True)
+    status=models.CharField(max_length=128,default="active")
     is_deleted=models.BooleanField(default=False)
 
     class Meta:
         db_table='HomeDetails'
 
+    def __str__(self):
+        return self.main_banner
+
 class Subbanner(models.Model):
     sub_banner=models.ImageField(upload_to='Images',blank=True,null=True)
     sub_banner_url=models.URLField(blank=True,null=True)
+    status=models.CharField(max_length=128,default="active")
     is_deleted=models.BooleanField(default=False)
     class Meta:
         db_table='Subbanner'
+
+    def __str__(self):
+        return self.sub_banner
 
 
 
@@ -30,6 +38,9 @@ class Contact(models.Model):
     is_deleted=models.BooleanField(default=False)
     class Meta:
         db_table='Contact'
+    
+    def __str__(self):
+        return self.about
 
 class Details(models.Model):
     heading=models.CharField(max_length=300,blank=True,null=True)
@@ -40,6 +51,9 @@ class Details(models.Model):
     is_deleted=models.BooleanField(default=False)
     class Meta:
         db_table='Details'
+    
+    def __str__(self):
+        return self.heading
 
 class Experts(models.Model):
     title=models.CharField(max_length=300,blank=True,null=True)
@@ -53,6 +67,9 @@ class Experts(models.Model):
     is_deleted=models.BooleanField(default=False)
     class Meta:
         db_table='Experts'
+    
+    def __str__(self):
+        return self.title
 
 
 
@@ -69,4 +86,4 @@ class Experts(models.Model):
 # Create your models here.
 
 
-# Create your models here.
+

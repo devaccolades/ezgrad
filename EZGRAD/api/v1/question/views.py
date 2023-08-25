@@ -115,30 +115,34 @@ def delete_question(request,id):
 @api_view(['GET'])
 def list_question(request):
     if (questions:= Questions.objects.filter(is_deleted=False)).exists():
+        total_questions = questions.count()
+        percentage_value=100/total_questions
+        current_percentage=percentage_value
         response_data = []
-        
         for question in questions:
             if (options:=Options.objects.filter(question=question, is_deleted=False)).exists():
-        
-                serialized_data = OptionSerializer(options, many=True).data
+                serialized_data = OptionSerializer(options,context={'request':request,}, many=True).data
                 question_data = {
-                    
+    
                     "question": question.question,
-                    "options": serialized_data
+                    "options": serialized_data,
+                    'percentage_with_options': current_percentage
+                    
                 }
+                current_percentage+=percentage_value
                 response_data.append(question_data)
+                
             else:
                 response_data.append({
                     "question": question.question,
                     "options": []
                 })
+        
     else:
         response_data = []
 
     return Response({'app_data': response_data})
 
-
-    
 
 @api_view(['POST'])
 @group_required(['ezgrad_admin'])
@@ -147,7 +151,7 @@ def add_options(request):
     if serialized_data.is_valid():
         id=request.data['question']
         if (question:=Questions.objects.filter(id=id,is_deleted=False)).exists():
-            questions=Questions.objects.get(id=id)
+            questions=question.latest('id')
             options=request.data['options']
             option=Options.objects.create(
             question=questions,
@@ -173,25 +177,25 @@ def add_options(request):
 @api_view(['GET'])
 @group_required(['ezgrad_admin'])
 def view_options(request):
-    if (options:=Options.objects.filter(is_deleted=False)).exists():
-        serialized_data=OptionSerializer(options,
-                                         context={
-                                             "request":request,
-                                         },
-                                         many=True,).data
-        response_data={
-            "StatusCode":6000,
-            "data":serialized_data
-        }
+    response_data = []
+    if (questions:=Questions.objects.filter(is_deleted=False)).exists():
+    
+        for question in questions:
+            if (options:=Options.objects.filter(question=question, is_deleted=False)).exists():
+                serialized_data = OptionSerializer(options, context={'request': request}, many=True).data
+                response_data.append({
+                    "question": question.question,
+                    "options": serialized_data,
+                })
+            else:
+                response_data.append({
+                    "question": question.question,
+                    "options": []
+                })
     else:
-        response_data={
-            "StatusCode":6001,
-            "data":{
-                "title":"Failed",
-                "Message":"Not Found"
-            }
-        }
-    return Response({'app_data':response_data})
+        response_data = []
+
+    return Response({'app_data': response_data})
 
 @api_view(['PUT'])
 @group_required(['ezgrad_admin'])
@@ -250,15 +254,11 @@ def add_answer(request):
         userid=request.data.get('userid')
         option=request.data.get('option')
         if (reg:=StudentProfile.objects.filter(id=userid,is_deleted=False)).exists():
-            user=StudentProfile.objects.get(id=userid)
-        else:
-            userid= None
+            user=reg.latest('id')
         if (opt:=Options.objects.filter(id=option,is_deleted=False)).exists():
-            options=Options.objects.get(id=option)
-        else:
-            option=None
+            options=opt.latest('id')
         record=RecordAnswer.objects.create(userid=user,
-                                           option=options,
+                                           option=options,  
                                           )
         response_data={
             "StatusCode":6000,

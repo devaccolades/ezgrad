@@ -11,6 +11,9 @@ class University(BaseModel):
     prospectus=models.FileField(upload_to='Files',blank=True,null=True)
     class Meta:
         db_table='University'
+    
+    def __str__(self):
+        return self.university_name
 
 
 class Facts(models.Model):
@@ -19,7 +22,8 @@ class Facts(models.Model):
     is_deleted=models.BooleanField(default=False)
     class Meta:
         db_table='Facts'
-    
+    def __str__(self):
+        return self.facts
 
 
 class Approval(models.Model):
@@ -30,6 +34,8 @@ class Approval(models.Model):
     class Meta:
         db_table='Approval'
 
+    def __str__(self):
+        return self.approved_by
 
 class Course(BaseModel):
     university=models.ForeignKey('course.University',on_delete=models.CASCADE,blank=True,null=True)
@@ -50,7 +56,9 @@ class Course(BaseModel):
 
     class Meta:
         db_table='Course'
-        
+    
+    def __str__(self):
+        return self.course_name
 
 class CourseSpecialization(models.Model):
     course=models.ForeignKey('course.Course',on_delete=models.CASCADE,blank=True,null=True)
@@ -58,6 +66,9 @@ class CourseSpecialization(models.Model):
     is_deleted=models.BooleanField(default=False)
     class Meta:
         db_table='CourseSpecialization'
+    
+    def __str__(self):
+        return self.specialization
 
 class Country(models.Model):
     country=models.CharField(max_length=200,blank=True,null=True)
@@ -65,6 +76,9 @@ class Country(models.Model):
     is_deleted=models.BooleanField(default=False)
     class Meta:
         db_table='Country'
+    
+    def __str__(self):
+        return self.country
 
 class Faq(models.Model):
     course=models.ForeignKey('course.Course',on_delete=models.CASCADE,blank=True,null=True)
@@ -73,10 +87,34 @@ class Faq(models.Model):
     is_deleted=models.BooleanField(default=False)
     class Meta:
         db_table='Faq'
+    
+    def __str__(self):
+        return self.faq_question
 
+class FoodFacility(models.Model):
+    university=models.ForeignKey('course.University',on_delete=models.CASCADE,blank=True,null=True)
+    name=models.CharField(max_length=200,blank=True,null=True)
+    photo=models.ImageField(upload_to='Images',blank=True,null=True)
+    fees=models.IntegerField(blank=True,null=True)
+    is_deleted=models.BooleanField(default=False)
+    class Meta:
+        db_table='FoodFacility'
 
+    def __str__(self):
+        return self.name
 
+class Hostel(models.Model):
+    university=models.ForeignKey('course.University',on_delete=models.CASCADE,blank=True,null=True)
+    hostel_name=models.CharField(max_length=200,blank=True,null=True)
+    hostel_image=models.ImageField(upload_to='Images',blank=True,null=True)
+    distance=models.CharField(max_length=200,blank=True,null=True)
+    fees=models.IntegerField(blank=True,null=True)
+    is_deleted=models.BooleanField(default=False)
+    class Meta:
+        db_table='Hostel'
 
+    def __str__(self):
+        return self.hostel_name
 
 
     
